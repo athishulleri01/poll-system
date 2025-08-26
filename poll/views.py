@@ -44,7 +44,7 @@ def user_login(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, f'Welcome back, {user.username}!')
-                # Redirect to next page if specified
+                
                 next_page = request.POST.get('next') or request.GET.get('next')
                 if next_page:
                     return redirect(next_page)
