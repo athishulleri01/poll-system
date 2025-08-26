@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Active Polls - Polling System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-poll me-2"></i>Active Polls</h2>
+    {% if user.is_staff %}
+        <a href="{% url 'create_poll' %}" class="btn btn-success">
+            <i class="fas fa-plus me-2"></i>Create New Poll
+        </a>
+    {% endif %}
+</div>
+
+{% if not user.is_authenticated %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        Please <a href="{% url 'login' %}">login</a> to participate in polls.
+    </div>
+{% endif %}
+
+<div class="row">
+    {% for poll in polls %}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ poll.question }}</h5>
+                    <p class="card-text text-muted">
+                        <i class="fas fa-calendar me-2"></i>{{ poll.created_at|date:"M d, Y" }}
+                        <br>
+                        <i class="fas fa-vote-yea me-2"></i>{{ poll.total_votes }} vote{{ poll.total_votes|pluralize }}
+                    </p>
+                    
+                    <div class="d-flex gap-2">
+                        {% if user.is_authenticated %}
+                            {% if poll.id in user_votes %}
+                                <a href="{% url 'poll_results' poll.id %}" class="btn btn-success">
+                                    <i class="fas fa-check me-2"></i>View Results
+                                </a>
+                                <span class="badge bg-success align-self-center">Voted</span>
+                            {% else %}
+                                <a href="{% url 'poll_detail' poll.id %}" class="btn btn-primary">
+                                    <i class="fas fa-vote-yea me-2"></i>Vote Now
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'poll_results' poll.id %}" class="btn btn-outline-primary">
+                                <i class="fas fa-chart-bar me-2"></i>View Results
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-vote-yea fa-3x text-muted mb-3"></i>
+                <h4>No Active Polls</h4>
+                <p class="text-muted">Check back later for new polls to participate in.</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+
+{% block title %}Active Polls - Polling System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-poll me-2"></i>Active Polls</h2>
+    {% if user.is_staff %}
+        <a href="{% url 'create_poll' %}" class="btn btn-success">
+            <i class="fas fa-plus me-2"></i>Create New Poll
+        </a>
+    {% endif %}
+</div>
+
+{% if not user.is_authenticated %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        Please <a href="{% url 'login' %}">login</a> to participate in polls.
+    </div>
+{% endif %}
+
+<div class="row">
+    {% for poll in polls %}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ poll.question }}</h5>
+                    <p class="card-text text-muted">
+                        <i class="fas fa-calendar me-2"></i>{{ poll.created_at|date:"M d, Y" }}
+                        <br>
+                        <i class="fas fa-vote-yea me-2"></i>{{ poll.total_votes }} vote{{ poll.total_votes|pluralize }}
+                    </p>
+                    
+                    <div class="d-flex gap-2">
+                        {% if user.is_authenticated %}
+                            {% if poll.id in user_votes %}
+                                <a href="{% url 'poll_results' poll.id %}" class="btn btn-success">
+                                    <i class="fas fa-check me-2"></i>View Results
+                                </a>
+                                <span class="badge bg-success align-self-center">Voted</span>
+                            {% else %}
+                                <a href="{% url 'poll_detail' poll.id %}" class="btn btn-primary">
+                                    <i class="fas fa-vote-yea me-2"></i>Vote Now
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'poll_results' poll.id %}" class="btn btn-outline-primary">
+                                <i class="fas fa-chart-bar me-2"></i>View Results
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-vote-yea fa-3x text-muted mb-3"></i>
+                <h4>No Active Polls</h4>
+                <p class="text-muted">Check back later for new polls to participate in.</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %} {% endcomment %}

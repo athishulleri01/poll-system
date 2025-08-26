@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}My Votes - Polling System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-history me-2"></i>My Voting History</h2>
+    <a href="{% url 'poll_list' %}" class="btn btn-primary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Polls
+    </a>
+</div>
+
+{% if user_votes %}
+    <div class="row">
+        {% for vote in user_votes %}
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm vote-card">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-question-circle me-2"></i>{{ vote.poll.question }}
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>My Vote:</strong>
+                            <span class="badge bg-success ms-2">
+                                <i class="fas fa-check me-1"></i>{{ vote.option.text }}
+                            </span>
+                        </div>
+                        
+                        <div class="row text-center mb-3">
+                            <div class="col-4">
+                                <small class="text-muted d-block">Voted On</small>
+                                <strong>{{ vote.voted_at|date:"M d, Y" }}</strong>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block">Total Votes</small>
+                                <strong class="text-primary">{{ vote.poll.total_votes }}</strong>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block">Status</small>
+                                <strong class="{% if vote.poll.is_active and not vote.poll.is_expired %}text-success{% else %}text-secondary{% endif %}">
+                                    {% if vote.poll.is_expired %}
+                                        Expired
+                                    {% elif vote.poll.is_active %}
+                                        Active
+                                    {% else %}
+                                        Inactive
+                                    {% endif %}
+                                </strong>
+                            </div>
+                        </div>
+                        
+                        <!-- Show current results for this option -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted">Your choice performance:</small>
+                                <small class="text-muted">
+                                    {{ vote.option.vote_count }} votes ({{ vote.option.vote_percentage|floatformat:1 }}%)
+                                </small>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-success" 
+                                     role="progressbar" 
+                                     style="width: {{ vote.option.vote_percentage }}%">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'poll_results' vote.poll.id %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-chart-bar me-1"></i>View Results
+                            </a>
+                            {% if vote.poll.expires_at and not vote.poll.is_expired %}
+                                <span class="btn btn-outline-warning btn-sm disabled">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {% with time_remaining=vote.poll.time_remaining %}
+                                        {% if time_remaining %}
+                                            {{ time_remaining.days }}d {{ time_remaining.hours }}h left
+                                        {% endif %}
+                                    {% endwith %}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <small>
+                            <i class="fas fa-calendar me-1"></i>Poll created {{ vote.poll.created_at|timesince }} ago
+                            <span class="float-end">
+                                <i class="fas fa-user me-1"></i>by {{ vote.poll.created_by.username }}
+                            </span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Voting Statistics -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-chart-line me-2"></i>Your Voting Statistics</h5>
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h4 class="text-primary">{{ user_votes.count }}</h4>
+                            <small class="text-muted">Total Votes Cast</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="text-success">{{ user_votes.count }}</h4>
+                            <small class="text-muted">Polls Participated</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="text-info">
+                                {% if user_votes %}
+                                    {{ user_votes.first.voted_at|timesince }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </h4>
+                            <small class="text-muted">Last Vote</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="text-warning">
+                                {% if user_votes %}
+                                    {{ user_votes.last.voted_at|timesince }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </h4>
+                            <small class="text-muted">First Vote</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <div class="empty-state">
+            <i class="fas fa-vote-yea fa-4x text-muted mb-4"></i>
+            <h4 class="text-muted">No Votes Yet</h4>
+            <p class="text-muted mb-4">You haven't participated in any polls yet. Start voting to see your history here!</p>
+            <a href="{% url 'poll_list' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-vote-yea me-2"></i>Find Polls to Vote
+            </a>
+        </div>
+    </div>
+{% endif %}
+
+<style>
+.vote-card {
+    border-radius: 15px;
+    border: none;
+    transition: all 0.3s ease;
+    border-left: 4px solid #007bff;
+}
+
+.vote-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+
+.badge {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+}
+
+.progress {
+    border-radius: 10px;
+    background-color: #e9ecef;
+}
+
+.card-footer {
+    background: rgba(0,0,0,0.03);
+    border-radius: 0 0 15px 15px !important;
+}
+
+.empty-state {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 20px;
+    padding: 60px 20px;
+}
+
+.btn-sm {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+}
+
+.card.bg-light {
+    border-radius: 15px;
+    border: none;
+}
+
+@media (max-width: 768px) {
+    .vote-card .row > div {
+        margin-bottom: 10px;
+    }
+    
+    .d-flex.gap-2 {
+        flex-direction: column;
+        gap: 10px !important;
+    }
+    
+    .card-body .row.text-center {
+        font-size: 0.9rem;
+    }
+}
+</style>
+{% endblock %}

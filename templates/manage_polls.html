@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Polls - Polling System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-cogs me-2"></i>Manage Polls</h2>
+    <a href="{% url 'create_poll' %}" class="btn btn-success">
+        <i class="fas fa-plus me-2"></i>Create New Poll
+    </a>
+</div>
+
+<div class="row">
+    {% for poll in polls %}
+        <div class="col-md-12 mb-4">
+            <div class="card shadow-sm poll-card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="card-title mb-2">{{ poll.question }}</h5>
+                            <p class="card-text text-muted mb-2">
+                                <i class="fas fa-calendar me-2"></i>{{ poll.created_at|date:"M d, Y H:i" }}
+                                <span class="ms-4">
+                                    <i class="fas fa-user me-1"></i>by {{ poll.created_by.username }}
+                                </span>
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-vote-yea me-2"></i>{{ poll.total_votes }} vote{{ poll.total_votes|pluralize }}
+                            </p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            {% if poll.is_active %}
+                                <span class="badge bg-success fs-6 pulse">
+                                    <i class="fas fa-play me-1"></i>Active
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary fs-6">
+                                    <i class="fas fa-pause me-1"></i>Inactive
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'poll_results' poll.id %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-chart-bar me-1"></i>Results
+                                </a>
+                                <a href="{% url 'toggle_poll_status' poll.id %}" 
+                                   class="btn btn-outline-{% if poll.is_active %}warning{% else %}success{% endif %} btn-sm toggle-btn"
+                                   onclick="return confirm('Are you sure you want to {% if poll.is_active %}deactivate{% else %}activate{% endif %} this poll?')">
+                                    {% if poll.is_active %}
+                                        <i class="fas fa-pause me-1"></i>Deactivate
+                                    {% else %}
+                                        <i class="fas fa-play me-1"></i>Activate
+                                    {% endif %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 options-section">
+                        <div class="d-flex align-items-center mb-2">
+                            <strong class="me-2">Options:</strong>
+                            <span class="badge bg-light text-dark">{{ poll.options.count }} option{{ poll.options.count|pluralize }}</span>
+                        </div>
+                        <div class="options-container">
+                            {% for option in poll.options.all %}
+                                <div class="option-badge">
+                                    <span class="option-text">{{ option.text }}</span>
+                                    <span class="option-count">({{ option.vote_count }} vote{{ option.vote_count|pluralize }})</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    {% if poll.total_votes > 0 %}
+                        <div class="mt-3">
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                            </div>
+                            <small class="text-muted">Total engagement: {{ poll.total_votes }} votes</small>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer bg-light border-0">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <small class="text-muted d-block">Created</small>
+                            <strong>{{ poll.created_at|date:"M d" }}</strong>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Status</small>
+                            <strong class="{% if poll.is_active %}text-success{% else %}text-secondary{% endif %}">
+                                {% if poll.is_active %}Active{% else %}Inactive{% endif %}
+                            </strong>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Votes</small>
+                            <strong class="text-primary">{{ poll.total_votes }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5 empty-state">
+                <div class="empty-icon mb-4">
+                    <i class="fas fa-poll fa-4x text-muted"></i>
+                </div>
+                <h4 class="text-muted">No Polls Created Yet</h4>
+                <p class="text-muted mb-4">Create your first poll to get started with collecting votes and opinions.</p>
+                <a href="{% url 'create_poll' %}" class="btn btn-success btn-lg">
+                    <i class="fas fa-plus me-2"></i>Create Your First Poll
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Quick Stats Summary -->
+{% if polls %}
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4>{{ polls.count }}</h4>
+                        <small>Total Polls</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4>{{ polls|length|add:0 }}</h4>
+                        <small>Active Polls</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 id="totalVotes">-</h4>
+                        <small>Total Votes</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 id="totalOptions">-</h4>
+                        <small>Total Options</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+// Calculate stats
+document.addEventListener('DOMContentLoaded', function() {
+    const pollCards = document.querySelectorAll('.poll-card');
+    let totalVotes = 0;
+    let totalOptions = 0;
+    
+    pollCards.forEach(card => {
+        // Extract vote count from the text
+        const voteText = card.querySelector('[class*="fa-vote-yea"]').parentNode.textContent;
+        const voteMatch = voteText.match(/(\d+) vote/);
+        if (voteMatch) {
+            totalVotes += parseInt(voteMatch[1]);
+        }
+        
+        // Count options
+        const optionBadges = card.querySelectorAll('.option-badge');
+        totalOptions += optionBadges.length;
+    });
+    
+    // Update display
+    const totalVotesEl = document.getElementById('totalVotes');
+    const totalOptionsEl = document.getElementById('totalOptions');
+    
+    if (totalVotesEl) totalVotesEl.textContent = totalVotes;
+    if (totalOptionsEl) totalOptionsEl.textContent = totalOptions;
+});
+
+// Add smooth transitions for button interactions
+document.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-2px)';
+    });
+    
+    btn.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+    });
+});
+</script>
+
+<style>
+.poll-card {
+    border: none;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    border-left: 4px solid #007bff;
+}
+
+.poll-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+
+.card-title {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.badge {
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.badge.bg-success.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+
+.btn-group .btn {
+    border-radius: 8px;
+    margin: 0 2px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    background-color: #007bff;
+    transform: translateY(-2px);
+}
+
+.btn-outline-warning:hover {
+    background-color: #ffc107;
+    color: #212529;
+    transform: translateY(-2px);
+}
+
+.btn-outline-success:hover {
+    background-color: #28a745;
+    transform: translateY(-2px);
+}
+
+.options-section {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 15px;
+}
+
+.options-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.option-badge {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s ease;
+}
+
+.option-badge:hover {
+    background: #e9ecef;
+    transform: translateY(-1px);
+}
+
+.option-text {
+    font-weight: 500;
+    color: #495057;
+}
+
+.option-count {
+    color: #6c757d;
+    font-size: 0.8rem;
+    background: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.card-footer {
+    border-radius: 0 0 15px 15px !important;
+}
+
+.empty-state {
+    padding: 60px 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 20px;
+    margin: 20px 0;
+}
+
+.empty-icon {
+    opacity: 0.6;
+}
+
+.progress {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card.bg-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+    border-radius: 15px;
+    border: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .poll-card .row.align-items-center > div {
+        margin-bottom: 15px;
+    }
+    
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .options-container {
+        justify-content: center;
+    }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+    .poll-card {
+        background-color: #2c3e50;
+        color: white;
+    }
+    
+    .card-title {
+        color: white;
+    }
+    
+    .options-section {
+        background: #34495e;
+    }
+    
+    .option-badge {
+        background: #3c5267;
+        border-color: #495057;
+        color: white;
+    }
+}
+</style>
+{% endblock %}
