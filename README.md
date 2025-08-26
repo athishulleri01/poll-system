@@ -3,14 +3,33 @@
 This is a simple **Polling System** built with Django, where users can register, login, create polls, vote, and view results.
 
 ---
+## 🚀 Features
 
-## Features
+- **User Authentication**
+  - Register, Login, Logout
+  - Only authenticated users can vote
 
-* User Registration & Login (with authentication)
-* Create polls with multiple options
-* Vote on polls (1 vote per user per poll)
-* View poll results
-* Bootstrap-based responsive UI
+- **Poll Management**
+  - Admin can create polls with:
+    - Question
+    - Multiple options
+    - Expiry date
+  - Each user can vote **only once per poll**
+
+- **Voting Rules**
+  - One vote per user per poll
+  - Prevents duplicate voting
+
+- **Results**
+  - Show **total votes**
+  - Show **percentage share**
+  - Display results in **numbers and Chart.js graphs**
+
+- **Additional Features**
+  - Poll expiry dates (polls hidden after expiry)
+  - "My Votes" section for users
+  - Export poll results to **CSV format**
+
 
 ---
 ## 📂 Project Structure
